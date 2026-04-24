@@ -4,6 +4,7 @@ import { useRef, useMemo } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Stars, OrbitControls, } from '@react-three/drei'
 import * as THREE from 'three'
+import { scrollState } from '@/lib/scrollStore'
 
 function createPlanetTexture() {
   const size = 512
@@ -66,16 +67,35 @@ function Planet() {
   const meshRef = useRef<THREE.Mesh>(null)
   const ringRef = useRef<THREE.Mesh>(null)
   const ring2Ref = useRef<THREE.Mesh>(null)
+  const groupRef = useRef<THREE.Group>(null)
 
   const texture = useMemo(() => createPlanetTexture(), [])
 
   useFrame((_, delta) => {
     if (meshRef.current) meshRef.current.rotation.y += delta * 0.08
     if (ringRef.current) ringRef.current.rotation.z += delta * 0.02
+
+    if (groupRef.current) {
+      const t = scrollState.progress
+
+      // Quadratic Bézier curve: center → up → upper-right
+      // P0 = (0, 0, 0)  P1 = (0, 4, -8)  P2 = (6, 3.5, -16)
+      const targetX = 2 * (1 - t) * t * 0 + t * t * 9
+      const targetY = 2 * (1 - t) * t * 4 + t * t * 4
+      const targetZ = 2 * (1 - t) * t * -8 + t * t * -16
+
+      groupRef.current.position.x = THREE.MathUtils.lerp(groupRef.current.position.x, targetX, 0.1)
+      groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, targetY, 0.1)
+      groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, targetZ, 0.1)
+
+      const targetScale = 1 - t * 0.3
+      const s = THREE.MathUtils.lerp(groupRef.current.scale.x, targetScale, 0.1)
+      groupRef.current.scale.setScalar(s)
+    }
   })
 
   return (
-    <group rotation={[0.3, 0, 0.2]}>
+    <group ref={groupRef} rotation={[0.3, 0, 0.2]}>
       {/* Planeta */}
       <mesh ref={meshRef}>
         <sphereGeometry args={[2, 64, 64]} />
