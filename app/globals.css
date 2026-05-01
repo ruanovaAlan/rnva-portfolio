@@ -8,3 +8,12 @@ body {
   background-color: #050508;
   margin: 0;
 }
+
+@keyframes spin-border {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-border {
+  animation: spin-border 3s linear infinite;
+}
