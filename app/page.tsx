@@ -87,6 +87,13 @@ export default function Home() {
 
       {/* Portfolio sections */}
       <section className="relative z-10 min-h-screen flex flex-col px-12 md:px-24 py-32">
+        {/* Stars fade — dark at bottom, transparent ~55% up */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'linear-gradient(to top, rgba(5,5,8,0.82) 0%, rgba(5,5,8,0.4) 30%, transparent 55%)',
+          }}
+        />
         <p className="text-[#4A7DFF] text-sm tracking-[0.3em] uppercase mb-4">Experiencia</p>
         <h2 className="text-white text-5xl md:text-7xl font-light leading-none mb-16">
           Proyectos
