@@ -80,10 +80,7 @@ export default function Home() {
               Alan Ruanova
             </h1>
           </div>
-          {/* <p className="text-[#E8E8F0]/50 text-lg max-w-md font-light">
-            Transformo desafíos técnicos en soluciones eficaces.<br />
-            Construyo herramientas digitales que aportan valor real.
-          </p> */}
+
         </div>
       </section>
 

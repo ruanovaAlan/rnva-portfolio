@@ -225,7 +225,7 @@ function Planet() {
     if (groupRef.current) {
       const t = scrollState.progress
       const targetX = 2 * (1 - t) * t * 0 + t * t * 9
-      const targetY = 2 * (1 - t) * t * 4 + t * t * 4
+      const targetY = 2 * (1 - t) * t * 4 + t * t * 6
       const targetZ = 2 * (1 - t) * t * -8 + t * t * -16
 
       groupRef.current.position.x = THREE.MathUtils.lerp(groupRef.current.position.x, targetX, 0.1)
@@ -256,35 +256,7 @@ function Planet() {
       <EnergyArc seed={1.5} tiltX={-0.9} tiltZ={0.3} color="#4A7DFF" speed={0.22} comet lightColor="#b666cf" />
       <EnergyArc seed={3} tiltX={1.1} tiltZ={-0.5} color="#4A7DFF" speed={0.35} comet lightColor="#b666cf" />
       <EnergyArc seed={4.5} tiltX={-0.3} tiltZ={1.2} color="#4A7DFF" speed={0.18} comet lightColor="#b666cf" />
-      {/* <EnergyArc seed={6} tiltX={0.6} tiltZ={-1.1} color="#4A7DFF" speed={0.30} comet lightColor="#b666cf" /> */}
-      {/* <EnergyArc seed={7.5} tiltX={-1.3}  tiltZ={-0.4} color="#4A7DFF" speed={0.14} comet lightColor="#b666cf" />
-      <EnergyArc seed={9}   tiltX={1.4}   tiltZ={0.7}  color="#4A7DFF" speed={0.42} comet lightColor="#b666cf" /> */}
 
-      {/* Industrial station ring */}
-      {/* <mesh ref={ringRef} rotation={[Math.PI / 2.2, 0, 0]}>
-        <torusGeometry args={[3.5, 0.14, 6, 300]} />
-        <meshStandardMaterial
-          color="#1a2a44"
-          emissive="#003366"
-          emissiveIntensity={0.6}
-          roughness={0.4}
-          metalness={0.9}
-        />
-      </mesh> */}
-
-      {/* Outer faint ring */}
-      {/* <mesh ref={ring2Ref} rotation={[Math.PI / 2.2, 0, 0]}>
-        <torusGeometry args={[4.2, 0.055, 4, 300]} />
-        <meshStandardMaterial
-          color="#112233"
-          emissive="#001144"
-          emissiveIntensity={0.5}
-          roughness={0.3}
-          metalness={0.95}
-          transparent
-          opacity={0.65}
-        />
-      </mesh> */}
     </group>
   )
 }
