@@ -210,6 +210,118 @@ function EnergyArc({ seed = 0, tiltX = 0, tiltZ = 0, color = '#00ccff', speed = 
   )
 }
 
+function ShootingStar() {
+  const groupRef = useRef<THREE.Group>(null)
+  const matRef = useRef<THREE.MeshBasicMaterial>(null)
+
+  const trailGeo = useMemo(() => {
+    const length = 6
+    const segs = 40
+    const radialSegs = 5
+    const pts: THREE.Vector3[] = []
+    for (let i = 0; i <= segs; i++) {
+      pts.push(new THREE.Vector3(-(i * length / segs), 0, 0))
+    }
+    const curve = new THREE.CatmullRomCurve3(pts)
+    const geo = new THREE.TubeGeometry(curve, segs, 0.06, radialSegs, false)
+
+    const colors: number[] = []
+    for (let i = 0; i <= segs; i++) {
+      const u = i / segs
+      const b = Math.pow(1 - u, 1.2)
+      for (let j = 0; j <= radialSegs; j++) {
+        colors.push(b, b * 0.95, b) // slight blue-white tint
+      }
+    }
+    geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3))
+    return geo
+  }, [])
+
+  const state = useRef({
+    active: false,
+    elapsed: 0,
+    cooldown: 0,
+    startPos: new THREE.Vector3(),
+    dir: new THREE.Vector3(),
+    speed: 20,
+    travelDist: 38,
+  })
+
+  useFrame((_, delta) => {
+    const s = state.current
+
+    if (!s.active) {
+      s.cooldown += delta
+      if (s.cooldown < 30) return
+
+      // spawn
+      s.active = true
+      s.elapsed = 0
+      s.cooldown = 0
+
+      const angle = Math.random() * Math.PI * 2
+      const r = 22
+      const sx = Math.cos(angle) * r
+      const sy = Math.sin(angle) * (r * 0.45)
+      s.startPos.set(sx, sy, -8)
+      s.dir.set(
+        -sx + (Math.random() - 0.5) * 4,
+        -sy * 0.4 - Math.random() * 3,
+        0
+      ).normalize()
+
+      if (groupRef.current) {
+        groupRef.current.visible = true
+        groupRef.current.position.copy(s.startPos)
+        const xAxis = new THREE.Vector3(1, 0, 0)
+        if (Math.abs(s.dir.dot(xAxis)) > 0.9999) {
+          groupRef.current.rotation.set(0, s.dir.x > 0 ? 0 : Math.PI, 0)
+        } else {
+          groupRef.current.quaternion.setFromUnitVectors(xAxis, s.dir)
+        }
+      }
+      return
+    }
+
+    s.elapsed += delta
+    const dist = s.elapsed * s.speed
+    const t = dist / s.travelDist
+
+    // fade in first 8%, fade out last 20%
+    let alpha = 1
+    if (t < 0.08) alpha = t / 0.08
+    else if (t > 0.8) alpha = (1 - t) / 0.2
+
+    if (matRef.current) matRef.current.opacity = Math.max(0, alpha)
+
+    if (dist >= s.travelDist) {
+      s.active = false
+      if (groupRef.current) groupRef.current.visible = false
+      return
+    }
+
+    if (groupRef.current) {
+      groupRef.current.position.copy(s.startPos).addScaledVector(s.dir, dist)
+    }
+  })
+
+  return (
+    <group ref={groupRef} visible={false}>
+      <mesh geometry={trailGeo}>
+        <meshBasicMaterial
+          ref={matRef}
+          vertexColors
+          transparent
+          opacity={1}
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
+          toneMapped={false}
+        />
+      </mesh>
+    </group>
+  )
+}
+
 function Planet() {
   const meshRef = useRef<THREE.Mesh>(null)
   const ringRef = useRef<THREE.Mesh>(null)
@@ -281,6 +393,7 @@ export default function Scene() {
       <pointLight position={[0, -4, 2]} intensity={2} color="#ff6600" />
 
       <Stars radius={100} depth={50} count={5000} factor={10} fade speed={1} />
+      <ShootingStar />
       <Planet />
       <OrbitControls
         enableZoom={false}
