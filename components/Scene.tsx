@@ -2,65 +2,212 @@
 
 import { useRef, useMemo } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { Stars, OrbitControls, } from '@react-three/drei'
+import { Stars, OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
 import { scrollState } from '@/lib/scrollStore'
 
-function createPlanetTexture() {
-  const size = 512
+function createCyberpunkTexture() {
+  const size = 1024
   const canvas = document.createElement('canvas')
   canvas.width = size
   canvas.height = size
   const ctx = canvas.getContext('2d')!
 
-  // Base naranja
-  ctx.fillStyle = '#C2956C'
-  // ctx.fillStyle = '#fb8e5c'
+  // Light metallic gray base — man-made structure
+  // Dark polished platinum base
+  const baseGrad = ctx.createLinearGradient(0, 0, size, size)
+  baseGrad.addColorStop(0, '#2c2e33')
+  baseGrad.addColorStop(0.4, '#3a3d44')
+  baseGrad.addColorStop(0.7, '#28292f')
+  baseGrad.addColorStop(1, '#1e2026')
+  ctx.fillStyle = baseGrad
   ctx.fillRect(0, 0, size, size)
 
-  // Bandas horizontales
-  const bands = [
-    { y: 0.08, h: 0.06, color: 'rgba(180, 110, 55, 0.6)' },
-    { y: 0.18, h: 0.04, color: 'rgba(230, 160, 90, 0.5)' },
-    { y: 0.28, h: 0.08, color: 'rgba(160, 90, 45, 0.5)' },
-    { y: 0.40, h: 0.05, color: 'rgba(220, 150, 80, 0.4)' },
-    { y: 0.50, h: 0.07, color: 'rgba(150, 85, 40, 0.6)' },
-    { y: 0.62, h: 0.05, color: 'rgba(235, 165, 95, 0.4)' },
-    { y: 0.72, h: 0.08, color: 'rgba(170, 100, 50, 0.5)' },
-    { y: 0.84, h: 0.04, color: 'rgba(210, 140, 75, 0.4)' },
-    { y: 0.92, h: 0.06, color: 'rgba(155, 88, 42, 0.5)' },
-  ]
+  // Polished panel variation — subtle lighter/darker plates
+  for (let i = 0; i < 80; i++) {
+    const px = Math.random() * size
+    const py = Math.random() * size
+    const pw = (Math.random() * 5 + 2) * 28
+    const ph = (Math.random() * 5 + 2) * 28
+    const shade = 30 + Math.random() * 35 | 0
+    ctx.fillStyle = `rgba(${shade + 5},${shade + 6},${shade + 10},0.55)`
+    ctx.fillRect(px - pw / 2, py - ph / 2, pw, ph)
+  }
 
-  bands.forEach(({ y, h, color }) => {
-    const grad = ctx.createLinearGradient(0, y * size, 0, (y + h) * size)
-    grad.addColorStop(0, 'rgba(0,0,0,0)')
-    grad.addColorStop(0.5, color)
-    grad.addColorStop(1, 'rgba(0,0,0,0)')
-    ctx.fillStyle = grad
-    ctx.fillRect(0, y * size, size, h * size)
-  })
+  // Grid lines — circuit board
+  const gridSize = 28
+  ctx.strokeStyle = 'rgba(80, 90, 110, 0.35)'
+  ctx.lineWidth = 1
+  for (let x = 0; x < size; x += gridSize) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, size); ctx.stroke()
+  }
+  for (let y = 0; y < size; y += gridSize) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(size, y); ctx.stroke()
+  }
 
-  // Manchas orgánicas
-  const spots = [
-    { x: 0.2, y: 0.3, rx: 0.12, ry: 0.07, color: 'rgba(140, 80, 35, 0.45)' },
-    { x: 0.6, y: 0.45, rx: 0.10, ry: 0.06, color: 'rgba(200, 130, 65, 0.4)' },
-    { x: 0.8, y: 0.25, rx: 0.08, ry: 0.05, color: 'rgba(130, 75, 30, 0.4)' },
-    { x: 0.35, y: 0.65, rx: 0.14, ry: 0.06, color: 'rgba(190, 120, 55, 0.35)' },
-    { x: 0.7, y: 0.7, rx: 0.09, ry: 0.05, color: 'rgba(145, 85, 38, 0.4)' },
-    { x: 0.1, y: 0.55, rx: 0.07, ry: 0.04, color: 'rgba(210, 140, 70, 0.35)' },
-    { x: 0.5, y: 0.15, rx: 0.11, ry: 0.05, color: 'rgba(135, 78, 32, 0.4)' },
-  ]
+  // Circuit traces — blue on silver
+  ctx.lineWidth = 2
+  for (let i = 0; i < 35; i++) {
+    const snap = (v: number) => Math.round(v / gridSize) * gridSize
+    const x1 = snap(Math.random() * size)
+    const x2 = snap(Math.random() * size)
+    const y = snap(Math.random() * size)
+    ctx.strokeStyle = `rgba(0, ${80 + Math.random() * 100 | 0}, 220, ${0.5 + Math.random() * 0.4})`
+    ctx.beginPath(); ctx.moveTo(x1, y); ctx.lineTo(x2, y); ctx.stroke()
+  }
+  for (let i = 0; i < 35; i++) {
+    const snap = (v: number) => Math.round(v / gridSize) * gridSize
+    const x = snap(Math.random() * size)
+    const y1 = snap(Math.random() * size)
+    const y2 = snap(Math.random() * size)
+    ctx.strokeStyle = `rgba(0, ${80 + Math.random() * 100 | 0}, 220, ${0.5 + Math.random() * 0.4})`
+    ctx.beginPath(); ctx.moveTo(x, y1); ctx.lineTo(x, y2); ctx.stroke()
+  }
 
-  spots.forEach(({ x, y, rx, ry, color }) => {
-    ctx.beginPath()
-    ctx.ellipse(x * size, y * size, rx * size, ry * size, Math.random() * Math.PI, 0, Math.PI * 2)
-    ctx.fillStyle = color
-    ctx.fill()
-  })
+  // City blocks — mid-gray metallic panels
+  for (let i = 0; i < 55; i++) {
+    const bx = Math.random() * size
+    const by = Math.random() * size
+    const bw = (Math.random() * 4 + 1) * gridSize
+    const bh = (Math.random() * 4 + 1) * gridSize
+    const v = 20 + Math.random() * 30 | 0
+    ctx.fillStyle = `rgba(${v},${v + 2},${v + 6},0.8)`
+    ctx.fillRect(bx - bw / 2, by - bh / 2, bw, bh)
+    ctx.strokeStyle = 'rgba(90, 100, 130, 0.45)'
+    ctx.lineWidth = 1
+    ctx.strokeRect(bx - bw / 2, by - bh / 2, bw, bh)
+  }
 
+  // Orange/warm neon lights — windows & fires
+  for (let i = 0; i < 80; i++) {
+    const lx = Math.random() * size
+    const ly = Math.random() * size
+    const lr = Math.random() * 4 + 1
+    const g = ctx.createRadialGradient(lx, ly, 0, lx, ly, lr * 5)
+    g.addColorStop(0, `rgba(255,${120 + Math.random() * 60 | 0},10,1)`)
+    g.addColorStop(1, 'rgba(200,60,0,0)')
+    ctx.fillStyle = g
+    ctx.beginPath(); ctx.arc(lx, ly, lr * 5, 0, Math.PI * 2); ctx.fill()
+  }
 
+  // Cyan/blue neon lights
+  for (let i = 0; i < 60; i++) {
+    const lx = Math.random() * size
+    const ly = Math.random() * size
+    const lr = Math.random() * 3 + 1
+    const g = ctx.createRadialGradient(lx, ly, 0, lx, ly, lr * 6)
+    g.addColorStop(0, `rgba(0,${180 + Math.random() * 75 | 0},255,1)`)
+    g.addColorStop(1, 'rgba(0,80,255,0)')
+    ctx.fillStyle = g
+    ctx.beginPath(); ctx.arc(lx, ly, lr * 6, 0, Math.PI * 2); ctx.fill()
+  }
+
+  // Purple neon accents
+  for (let i = 0; i < 30; i++) {
+    const lx = Math.random() * size
+    const ly = Math.random() * size
+    const lr = Math.random() * 3 + 1
+    const g = ctx.createRadialGradient(lx, ly, 0, lx, ly, lr * 5)
+    g.addColorStop(0, 'rgba(180,0,255,0.9)')
+    g.addColorStop(1, 'rgba(80,0,180,0)')
+    ctx.fillStyle = g
+    ctx.beginPath(); ctx.arc(lx, ly, lr * 5, 0, Math.PI * 2); ctx.fill()
+  }
 
   return new THREE.CanvasTexture(canvas)
+}
+
+// Glowing plasma arc that orbits the planet
+function EnergyArc({ seed = 0, tiltX = 0, tiltZ = 0, color = '#00ccff', speed = 0.25, comet = false, lightColor }: {
+  seed?: number; tiltX?: number; tiltZ?: number; color?: string; speed?: number; comet?: boolean; lightColor?: string
+}) {
+  const ref = useRef<THREE.Group>(null)
+
+  const geometry = useMemo(() => {
+    const pts: THREE.Vector3[] = []
+    const segs = 120
+    for (let i = 0; i <= segs; i++) {
+      const a = (i / segs) * Math.PI * 2
+      const r = 2.35 + Math.sin(a * 7 + seed) * 0.18 + Math.cos(a * 3 + seed * 2) * 0.1
+      const h = Math.sin(a * 4 + seed * 1.3) * 0.35
+      pts.push(new THREE.Vector3(Math.cos(a) * r, h, Math.sin(a) * r))
+    }
+    const curve = new THREE.CatmullRomCurve3(pts, true)
+    const tubularSegs = 200
+    const radialSegs = 6
+    const geo = new THREE.TubeGeometry(curve, tubularSegs, comet ? 0.03 : 0.018, radialSegs, true)
+
+    if (comet) {
+      // Vertex colors: blue→purple comet head, black tail (additive = transparent)
+      const blue = new THREE.Color('#4A7DFF')
+      const purple = new THREE.Color('#b666cf')
+      const black = new THREE.Color(0, 0, 0)
+      const colorData: number[] = []
+
+      for (let i = 0; i <= tubularSegs; i++) {
+        const u = i / tubularSegs
+        const dim = new THREE.Color(0.012, 0.018, 0.06)
+        const purpleBright = new THREE.Color('#cc00ff').multiplyScalar(.7)
+        let c: THREE.Color
+        if (u < 0.03) {
+          // fade in
+          c = dim.clone().lerp(blue, u / 0.03)
+        } else if (u < 0.55) {
+          // long solid blue body
+          c = blue.clone()
+        } else if (u < 0.62) {
+          // sharp blue → overbright purple
+          c = blue.clone().lerp(purpleBright, (u - 0.55) / 0.07)
+        } else if (u < 0.72) {
+          // purple peak
+          c = purpleBright.clone()
+        } else if (u < 0.85) {
+          // burn out to dim
+          c = purpleBright.clone().lerp(dim, (u - 0.72) / 0.13)
+        } else {
+          c = dim.clone()
+        }
+        for (let j = 0; j <= radialSegs; j++) {
+          colorData.push(c.r, c.g, c.b)
+        }
+      }
+      geo.setAttribute('color', new THREE.Float32BufferAttribute(colorData, 3))
+    }
+
+    return geo
+  }, [seed, comet])
+
+  useFrame((_, delta) => {
+    if (ref.current) ref.current.rotation.y += delta * speed
+  })
+
+  return (
+    <group ref={ref} rotation={[tiltX, 0, tiltZ]}>
+      <mesh geometry={geometry}>
+        {comet ? (
+          <meshBasicMaterial
+            vertexColors
+            transparent
+            blending={THREE.AdditiveBlending}
+            depthWrite={false}
+            toneMapped={false}
+          />
+        ) : (
+          <meshStandardMaterial
+            color={color}
+            emissive={color}
+            emissiveIntensity={4}
+            transparent
+            opacity={0.85}
+            toneMapped={false}
+          />
+        )}
+      </mesh>
+      {/* Positioned on arc radius — rotates with group, sweeps planet surface */}
+      <pointLight position={[2.4, 0, 0]} color={color} intensity={3} distance={3} decay={2} />
+      <pointLight position={[-2.4, 0, 0]} color={lightColor ?? color} intensity={3} distance={3} decay={2} />
+    </group>
+  )
 }
 
 function Planet() {
@@ -69,17 +216,14 @@ function Planet() {
   const ring2Ref = useRef<THREE.Mesh>(null)
   const groupRef = useRef<THREE.Group>(null)
 
-  const texture = useMemo(() => createPlanetTexture(), [])
+  const texture = useMemo(() => createCyberpunkTexture(), [])
 
   useFrame((_, delta) => {
-    if (meshRef.current) meshRef.current.rotation.y += delta * 0.08
-    if (ringRef.current) ringRef.current.rotation.z += delta * 0.02
+    if (meshRef.current) meshRef.current.rotation.y += delta * 0.06
+    if (ringRef.current) ringRef.current.rotation.z += delta * 0.015
 
     if (groupRef.current) {
       const t = scrollState.progress
-
-      // Quadratic Bézier curve: center → up → upper-right
-      // P0 = (0, 0, 0)  P1 = (0, 4, -8)  P2 = (6, 3.5, -16)
       const targetX = 2 * (1 - t) * t * 0 + t * t * 9
       const targetY = 2 * (1 - t) * t * 4 + t * t * 4
       const targetZ = 2 * (1 - t) * t * -8 + t * t * -16
@@ -88,47 +232,59 @@ function Planet() {
       groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, targetY, 0.1)
       groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, targetZ, 0.1)
 
-      const targetScale = 1 - t * 0.3
-      const s = THREE.MathUtils.lerp(groupRef.current.scale.x, targetScale, 0.1)
+      const s = THREE.MathUtils.lerp(groupRef.current.scale.x, 1 - t * 0.3, 0.1)
       groupRef.current.scale.setScalar(s)
     }
   })
 
   return (
     <group ref={groupRef} rotation={[0.3, 0, 0.2]}>
-      {/* Planeta */}
+      {/* Planet sphere */}
       <mesh ref={meshRef}>
         <sphereGeometry args={[2, 64, 64]} />
         <meshStandardMaterial
           map={texture}
-          roughness={0.85}
-          metalness={0.05}
+          emissive="#1a1c22"
+          emissiveIntensity={0.6}
+          roughness={0.25}
+          metalness={0.8}
         />
       </mesh>
 
-      {/* Anillo principal */}
-      <mesh ref={ringRef} rotation={[Math.PI / 2.2, 0, 0]}>
-        <torusGeometry args={[3.2, 0.35, 2, 200]} />
-        <meshStandardMaterial
-          color="#b666cf"
-          roughness={1}
-          metalness={0}
-          transparent
-          opacity={0.75}
-        />
-      </mesh>
+      {/* Plasma energy arcs — spread across distinct orbital planes */}
+      <EnergyArc seed={0} tiltX={0.2} tiltZ={0.0} color="#4A7DFF" speed={0.28} comet lightColor="#b666cf" />
+      <EnergyArc seed={1.5} tiltX={-0.9} tiltZ={0.3} color="#4A7DFF" speed={0.22} comet lightColor="#b666cf" />
+      <EnergyArc seed={3} tiltX={1.1} tiltZ={-0.5} color="#4A7DFF" speed={0.35} comet lightColor="#b666cf" />
+      <EnergyArc seed={4.5} tiltX={-0.3} tiltZ={1.2} color="#4A7DFF" speed={0.18} comet lightColor="#b666cf" />
+      {/* <EnergyArc seed={6} tiltX={0.6} tiltZ={-1.1} color="#4A7DFF" speed={0.30} comet lightColor="#b666cf" /> */}
+      {/* <EnergyArc seed={7.5} tiltX={-1.3}  tiltZ={-0.4} color="#4A7DFF" speed={0.14} comet lightColor="#b666cf" />
+      <EnergyArc seed={9}   tiltX={1.4}   tiltZ={0.7}  color="#4A7DFF" speed={0.42} comet lightColor="#b666cf" /> */}
 
-      {/* Anillo exterior tenue */}
-      <mesh ref={ring2Ref} rotation={[Math.PI / 2.2, 0, 0]}>
-        <torusGeometry args={[3.8, 0.15, 2, 200]} />
+      {/* Industrial station ring */}
+      {/* <mesh ref={ringRef} rotation={[Math.PI / 2.2, 0, 0]}>
+        <torusGeometry args={[3.5, 0.14, 6, 300]} />
         <meshStandardMaterial
-          color="#8c35a7"
-          roughness={1}
-          metalness={0}
-          transparent
-          opacity={0.4}
+          color="#1a2a44"
+          emissive="#003366"
+          emissiveIntensity={0.6}
+          roughness={0.4}
+          metalness={0.9}
         />
-      </mesh>
+      </mesh> */}
+
+      {/* Outer faint ring */}
+      {/* <mesh ref={ring2Ref} rotation={[Math.PI / 2.2, 0, 0]}>
+        <torusGeometry args={[4.2, 0.055, 4, 300]} />
+        <meshStandardMaterial
+          color="#112233"
+          emissive="#001144"
+          emissiveIntensity={0.5}
+          roughness={0.3}
+          metalness={0.95}
+          transparent
+          opacity={0.65}
+        />
+      </mesh> */}
     </group>
   )
 }
@@ -139,18 +295,20 @@ export default function Scene() {
       camera={{ position: [0, 0, 8], fov: 45 }}
       style={{ background: 'transparent' }}
     >
-      <ambientLight intensity={0.4} color="#FFF5E0" />
-      <directionalLight position={[5, 3, 5]} intensity={2} color="#ffa680" />
-      <pointLight position={[-4, 2, 3]} intensity={1} color="#e86e28" />
-      <Stars
-        radius={100}
-        depth={50}
-        count={4000}
-        factor={10}
-        fade
+      {/* Ambient — enough to see gray base */}
+      <ambientLight intensity={0.6} color="#c0cce0" />
 
-        speed={1}
-      />
+      {/* Main white fill */}
+      <directionalLight position={[5, 5, 5]} intensity={2.5} color="#ddeeff" />
+
+      {/* Blue energy glow */}
+      <pointLight position={[3, 2, 5]} intensity={4} color="#00aaff" />
+      <pointLight position={[-4, 1, 3]} intensity={2} color="#0066ff" />
+
+      {/* Warm orange underfill */}
+      <pointLight position={[0, -4, 2]} intensity={2} color="#ff6600" />
+
+      <Stars radius={100} depth={50} count={5000} factor={10} fade speed={1} />
       <Planet />
       <OrbitControls
         enableZoom={false}

@@ -72,16 +72,18 @@ export default function Home() {
       {/* Hero section */}
       <section className="relative z-10 h-screen flex flex-col justify-center px-12 md:px-24">
         <div ref={heroRef}>
-          <p className="text-[#4A7DFF] text-sm tracking-[0.3em] uppercase mb-4">
+          <p className="text-[#4A7DFF] text-sm tracking-[0.3em] uppercase mb-2 bg-black/80 px-1 w-fit rounded-full">
             Fullstack Developer
           </p>
-          <h1 className="text-white text-6xl md:text-8xl font-light leading-none mb-6">
-            Alan Ruanova
-          </h1>
-          <p className="text-[#E8E8F0]/50 text-lg max-w-md font-light">
+          <div className="name-border bg-linear-to-t from-black/40 to-transparent mb-4">
+            <h1 className="text-white text-6xl md:text-8xl font-semibold leading-none">
+              Alan Ruanova
+            </h1>
+          </div>
+          {/* <p className="text-[#E8E8F0]/50 text-lg max-w-md font-light">
             Transformo desafíos técnicos en soluciones eficaces.<br />
             Construyo herramientas digitales que aportan valor real.
-          </p>
+          </p> */}
         </div>
       </section>
 

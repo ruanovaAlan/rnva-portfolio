@@ -9,11 +9,32 @@ body {
   margin: 0;
 }
 
-@keyframes spin-border {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+@keyframes name-border-cycle {
+
+  0%,
+  100% {
+    border-bottom-color: #4A7DFF;
+  }
+
+  50% {
+    border-bottom-color: #b666cf;
+  }
 }
 
-.animate-spin-border {
-  animation: spin-border 3s linear infinite;
+.name-border {
+  display: inline-block;
+  width: fit-content;
+  /* Forzamos que los otros bordes sean transparentes y de ancho 0 */
+  border-top: 0px solid transparent;
+  border-left: 0px solid transparent;
+  border-right: 0px solid transparent;
+
+  /* Definimos solo el inferior */
+  border-bottom: 2px solid #4A7DFF;
+
+  /* Aplicamos la animación */
+  animation: name-border-cycle 3s linear infinite;
+
+  /* Opcional: Evita que sombras extrañas se hereden */
+  box-shadow: none;
 }
